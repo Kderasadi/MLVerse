@@ -1,12 +1,18 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router";
+//import { useHistory } from "react-router-dom";
 
 const UserContext = createContext();
 
 const UserProvider = ({ children }) => {
   const [user, setUser] = useState();
+  const navigate = useNavigate();
 
-  const navigate = useNavigate;
+  // useEffect(() => {
+  //   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+  //   setUser(userInfo);
+  // }, [user]);
+
   useEffect(() => {
     const userInfo = JSON.parse(localStorage.getItem("userInfo"));
     setUser(userInfo);
@@ -14,7 +20,8 @@ const UserProvider = ({ children }) => {
     if (!userInfo) {
       navigate("/");
     }
-  }, [navigate]);
+  }, []);
+
   return (
     <UserContext.Provider
       value={{

@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
 import { UserState } from "../context/UserProvider";
 import SideDrawer from "../components/miscellaneous/SideDrawer";
-
 import { useNavigate } from "react-router-dom";
+
 import {
   Container,
   Box,
@@ -27,6 +27,7 @@ const Mainpage = () => {
       navigate("/chats");
     }
   }, [navigate]);
+
   return (
     <>
       <div style={{ width: "100%" }}>

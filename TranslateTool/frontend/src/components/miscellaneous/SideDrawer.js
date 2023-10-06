@@ -98,7 +98,7 @@ const SideDrawer = () => {
             </Text>
           </Button>
         </Tooltip>
-        <Text fontSize="2xl">ChatterBox</Text>
+
         <div>
           <Menu>
             <MenuButton p={3} as={Button} rightIcon={<ChevronDownIcon />}>
