@@ -93,36 +93,62 @@ const Mainpage = () => {
     }
   };
 
-  const handleStartRecording = () => {
-    recorder.current.start();
+   const handleStartRecording = () => {
+    setRecording(true);
+    setTranslated(""); // Clear previous translation if any
+
+    // Start recording audio
+    navigator.mediaDevices
+      .getUserMedia({ audio: true })
+      .then((stream) => {
+        const recorder = new MediaRecorder(stream);
+        setMediaRecorder(recorder); // Set mediaRecorder in state
+
+        const audioChunks = [];
+
+        recorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            audioChunks.push(event.data);
+          }
+        };
+
+        recorder.onstop = () => {
+          const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+          setAudioBlob(audioBlob);
+        };
+
+        recorder.start();
+      })
+      .catch((error) => console.error("Error:", error));
   };
 
-  const handleStopRecording = async () => {
-    const audioData = await recorder.current.stop();
-    setAudioBlob(audioData);
-  };
-  const handleSendAudio = async () => {
-    if (audioBlob) {
-      const formData = new FormData();
-      formData.append("file", audioBlob);
-      try {
-        const response = await axios.post(
-          "http://localhost:7000/speech-to-text",
-          formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
-        // Handle the response, e.g., display transcription and translation
-        console.log("Transcription:", response.data.transcription);
-        console.log("Translation:", response.data.translation);
-      } catch (error) {
-        console.error("Error:", error);
-      }
+  const handleStopRecording = () => {
+    if (mediaRecorder && recording) {
+      mediaRecorder.stop();
+      setRecording(false);
     }
   };
+
+  const sendAudioToAPII = async () => {
+    // Make the function async
+    if (audioBlob) {
+      const formData = new FormData();
+      formData.append("file", audioBlob, "audio.wav");
+      formData.append("from_lang", selectedLanguageLeft);
+      formData.append("to_lang", selectedLanguageRight);
+
+      
+        const response = await fetch("http://localhost:7000/speech-to-text", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setTranslated(data.translation);
+        }
+      }
+    }
 
   const startRecording = () => {
     setRecording(true);
@@ -445,7 +471,7 @@ const Mainpage = () => {
                 <button style={style.button} onClick={handleStopRecording}>
                   Stop Recording
                 </button>
-                <button style={style.button} onClick={handleSendAudio}>
+                <button style={style.button} onClick={sendAudioToAPII}>
                   Send Audio
                 </button>
               </div>
