@@ -5,15 +5,32 @@ const userRoutes = require("./routes/userRoutes");
 const cors = require("cors");
 const axios = require("axios");
 
+
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
-const path = require("path");
+//const path = require("path");
 
 dotenv.config();
 connectDB();
 const app = express();
 
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:3000", // use your actual domain name (or localhost), using * is not recommended
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Origin",
+      "X-Requested-With",
+      "Accept",
+      "x-client-key",
+      "x-client-token",
+      "x-client-secret",
+      "Authorization",
+    ],
+    credentials: true,
+  })
+);
 
 app.use("/api/user", userRoutes);
 //app.use("/api/chat", chatRoutes);

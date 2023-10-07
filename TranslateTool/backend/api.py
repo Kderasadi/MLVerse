@@ -23,16 +23,25 @@ language_codes = {
     "gujarati":	'gu-IN'
     # Add more languages as needed
 }
-@app.route('/text-to-text', methods = ['POST'])
+@app.route('/text-to-text', methods=['POST'])
 def text_to_text():
     if request.method == 'POST':
+        try:
+            data = request.json  # Assuming the data is sent as JSON
 
-        from_lang = str(request.form.get('from_lang'))
+            from_lang = data.get('from_lang')
+            to_lang = data.get('to_lang')
+            query = data.get('query')
 
-        to_lang = str(request.form.get('to_lang'))
-        query = str(request.form.get('query'))
-        translated_text = translator.translate(query.strip().lower(), src='en', dest='es').text
-        return jsonify({'translated_text': str(translated_text)})
+            if not from_lang or not to_lang or not query:
+                return jsonify({'error': 'Missing required data'}), 400
+
+            translated = translator.translate(query, src=from_lang, dest=to_lang)
+            translated_text = translated.text
+
+            return jsonify({'translated_text': translated_text})
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
 
 @app.route('/speech-to-text', methods=['POST'])
 def speech_to_text():

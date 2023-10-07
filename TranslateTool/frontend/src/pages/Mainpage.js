@@ -4,6 +4,8 @@ import SideDrawer from "../components/miscellaneous/SideDrawer";
 import { useNavigate } from "react-router-dom";
 import "./styles.css";
 import DropdownMenu from "../components/miscellaneous/DropdownMenu";
+import axios from "axios";
+//import translate from "google-translate-api";
 
 import {
   Container,
@@ -39,25 +41,17 @@ const Mainpage = () => {
       query: inputValue,
     };
     console.log(formData);
-    try {
-      const response = await fetch("http://localhost:7000/text-to-text", {
-        method: "POST",
-        mode: "no-cors",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
 
-      if (response.ok) {
-        const data = await response.json();
-        // Handle the response data here
-      } else {
-        console.error("Error:", response.status);
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    }
+    axios
+      .post("http://localhost:7000/text-to-text", formData)
+      .then((response) => {
+        console.log(response.data);
+        const data = response.data.translated_text;
+        setTranslated(data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
 
   const style = {
