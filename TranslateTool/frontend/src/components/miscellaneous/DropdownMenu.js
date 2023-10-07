@@ -18,7 +18,9 @@ function DropdownMenu({ selectedLanguage, setSelectedLanguage }) {
 
   const style = {
     dropdown: {
-      color: "black",
+      fontSize: "18px",
+      fontWeight: "500",
+      color: "#444444",
     },
   };
 
