@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { UserState } from "../context/UserProvider";
 import SideDrawer from "../components/miscellaneous/SideDrawer";
 import { useNavigate } from "react-router-dom";
 import "./styles.css";
 import DropdownMenu from "../components/miscellaneous/DropdownMenu";
 import axios from "axios";
-//import translate from "google-translate-api";
 
 import {
   Container,
@@ -55,6 +54,7 @@ const Mainpage = () => {
 
   // };
 
+  //Text to Speech
   const [audioSrc, setAudioSrc] = useState(null);
   // Store the user's query input here
   const handleClick = async () => {
@@ -84,6 +84,139 @@ const Mainpage = () => {
       }
     } catch (error) {
       console.error("Error:", error);
+    }
+  };
+
+  // const [audioBlob, setAudioBlob] = useState(null);
+
+  // const recorder = useRef(null);
+
+  // const handleStartRecording = () => {
+  //   recorder.current.start();
+  // };
+
+  // const handleStopRecording = async () => {
+  //   const audioData = await recorder.current.stop();
+  //   setAudioBlob(audioData);
+  // };
+
+  // const handleSendAudio = async () => {
+  //   if (audioBlob) {
+  //     const formData = new FormData();
+  //     formData.append("file", audioBlob);
+
+  //     try {
+  //       const response = await axios.post(
+  //         "http://localhost:7000/speech-to-text",
+  //         formData,
+  //         {
+  //           headers: {
+  //             "Content-Type": "multipart/form-data",
+  //           },
+  //         }
+  //       );
+
+  //       // Handle the response, e.g., display transcription and translation
+  //       console.log("Transcription:", response.data.transcription);
+  //       console.log("Translation:", response.data.translation);
+  //     } catch (error) {
+  //       console.error("Error:", error);
+  //     }
+  //   }
+  // };
+
+  const [recording, setRecording] = useState(false);
+  const [audioBlob, setAudioBlob] = useState(null);
+
+  const [mediaRecorder, setMediaRecorder] = useState(null);
+
+  const startRecording = () => {
+    setRecording(true);
+    setTranslated(""); // Clear previous translation if any
+
+    // Start recording audio
+    navigator.mediaDevices
+      .getUserMedia({ audio: true })
+      .then((stream) => {
+        const recorder = new MediaRecorder(stream);
+        setMediaRecorder(recorder); // Set mediaRecorder in state
+
+        const audioChunks = [];
+
+        recorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            audioChunks.push(event.data);
+          }
+        };
+
+        recorder.onstop = () => {
+          const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+          setAudioBlob(audioBlob);
+        };
+
+        recorder.start();
+      })
+      .catch((error) => console.error("Error:", error));
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && recording) {
+      mediaRecorder.stop();
+      setRecording(false);
+    }
+  };
+
+  const sendAudioToAPI = async () => {
+    // Make the function async
+    if (audioBlob) {
+      const formData = new FormData();
+      formData.append("file", audioBlob, "audio.wav");
+      formData.append("from_lang", selectedLanguageLeft);
+      formData.append("to_lang", selectedLanguageRight);
+
+      try {
+        const response = await fetch("http://localhost:7000/speech-to-text", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setTranslated(data.translation);
+
+          // Store the user's query input here
+
+          const textToSpeechResponse = await axios.post(
+            "http://localhost:7000/text-to-speech",
+            {
+              from_lang: selectedLanguageLeft,
+              to_lang: selectedLanguageRight,
+              query: data.translation,
+            },
+            {
+              responseType: "blob", // Set the response type to 'blob' to handle binary data
+            }
+          );
+
+          if (textToSpeechResponse.status === 200) {
+            // Create a blob URL from the response data
+            const blob = new Blob([textToSpeechResponse.data], {
+              type: "audio/wav",
+            });
+            const audioUrl = URL.createObjectURL(blob);
+
+            // Create a temporary audio element and set its source to the blob URL
+            const audioElement = new Audio(audioUrl);
+
+            // Play the audio
+            audioElement.play();
+          }
+        } else {
+          console.error("Error:", response.statusText);
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      }
     }
   };
 
@@ -129,7 +262,7 @@ const Mainpage = () => {
 
     box: {
       width: "1236px",
-      height: "438px",
+      height: "450px",
       position: "absolute",
       top: "19vh",
       borderRadius: "20px",
@@ -138,7 +271,7 @@ const Mainpage = () => {
       boxShadow: "0px 4px 4px 0px rgba(0, 0, 0, 0.25)",
       display: "flex",
       flexDirection: "column",
-      //justifyContent: "center",
+      justifyContent: "center",
     },
 
     boxtop: {
@@ -259,7 +392,25 @@ const Mainpage = () => {
               <div>{translated}</div>
             </div>
           </div>
-          <button onClick={handleClick}>Submit</button>
+          {/* <button onClick={handleClick}>Submit</button> */}
+          {/* <div>
+            <Recorder ref={recorder} onStop={handleStopRecording} />
+            <button onClick={handleStartRecording}>Start Recording</button>
+            <button onClick={handleStopRecording}>Stop Recording</button>
+            <button onClick={handleSendAudio}>Send Audio</button>
+          </div> */}
+          <div style={style.api}>
+            <button onClick={startRecording} disabled={recording}>
+              {recording ? "Recording..." : "Start Recording"}
+            </button>
+            <button onClick={stopRecording} disabled={!recording}>
+              Stop Recording
+            </button>
+            <button onClick={sendAudioToAPI} disabled={!audioBlob}>
+              Translate Audio
+            </button>
+            {translated && <p>Translation: {translated}</p>}
+          </div>
         </div>
       </div>
     </>
