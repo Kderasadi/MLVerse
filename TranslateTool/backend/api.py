@@ -5,7 +5,7 @@ from gtts import gTTS
 from flask_cors import CORS
 import os
 app = Flask(__name__)
-CORS(app,resources={r"/text-to-text": {"origins": "http://localhost:3000"}})
+CORS(app,resources={r"/*": {"origins": "http://localhost:3000"}})
 translator = Translator()
 recognizer = sr.Recognizer()
 language_codes = {
@@ -78,13 +78,15 @@ def speech_to_text():
 @app.route('/text-to-speech', methods=['POST'])
 def text_to_speech():
    
-        from_lang = str(request.form.get('from_lang'))  # Default to English if not provided
-        to_lang = str(request.form.get('to_lang'))      # Default to English if not provided
-        query = str(request.form.get('query'))
+        data = request.json  # Assuming the data is sent as JSON
+
+        from_lang = data.get('from_lang')
+        to_lang = data.get('to_lang')
+        query = data.get('query')
 
         translated_text = translator.translate(query, src='en', dest='es').text
 
-        tts = gTTS(translated_text, lang=to_lang.strip().lower())
+        tts = gTTS(translated_text, lang="es")
         tts.save('translation.wav')
 
        

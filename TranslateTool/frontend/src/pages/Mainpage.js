@@ -34,32 +34,63 @@ const Mainpage = () => {
   const [tab, setTab] = useState();
   const [inputValue, setInputValue] = useState("");
 
-  const handleClick = async () => {
-    const formData = {
-      from_lang: selectedLanguageLeft,
-      to_lang: selectedLanguageRight,
-      query: inputValue,
-    };
-    console.log(formData);
+  // const handleClick = async () => {
+  //   const formData = {
+  //     from_lang: selectedLanguageLeft,
+  //     to_lang: selectedLanguageRight,
+  //     query: inputValue,
+  //   };
+  //   console.log(formData);
 
-    axios
-      .post("http://localhost:7000/text-to-text", formData)
-      .then((response) => {
-        console.log(response.data);
-        const data = response.data.translated_text;
-        setTranslated(data);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+  //   axios
+  //     .post("http://localhost:7000/text-to-text", formData)
+  //     .then((response) => {
+  //       console.log(response.data);
+  //       const data = response.data.translated_text;
+  //       setTranslated(data);
+  //     })
+  //     .catch((error) => {
+  //       console.log(error);
+  //     });
+
+  // };
+
+  const [audioSrc, setAudioSrc] = useState(null);
+  // Store the user's query input here
+  const handleClick = async () => {
+    try {
+      const response = await axios.post(
+        "http://localhost:7000/text-to-speech",
+        {
+          from_lang: selectedLanguageLeft,
+          to_lang: selectedLanguageRight,
+          query: inputValue,
+        },
+        {
+          responseType: "blob", // Set the response type to 'blob' to handle binary data
+        }
+      );
+
+      if (response.status === 200) {
+        // Create a blob URL from the response data
+        const blob = new Blob([response.data], { type: "audio/wav" });
+        const audioUrl = URL.createObjectURL(blob);
+
+        // Create a temporary audio element and set its source to the blob URL
+        const audioElement = new Audio(audioUrl);
+
+        // Play the audio
+        audioElement.play();
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
   };
 
   const style = {
     page: {
       background: "#2B2D42",
-      position: "absolute",
-      top: 0,
-      height: "98vh",
+      height: "96vh",
       width: "100vw",
       color: "white",
       textAlign: "center",
@@ -72,12 +103,12 @@ const Mainpage = () => {
     tabs: {
       width: "100vw",
       position: "absolute",
-      top: "30px",
+      top: "10px",
       left: "60px",
-      height: "100px",
+      height: "10vw",
       display: "flex",
-      alignItems: "flex",
-      gap: "50px",
+      alignItems: "center",
+      gap: "5px",
       paddingLeft: "30px",
       borderBotton: "1px solid black",
     },
@@ -85,7 +116,7 @@ const Mainpage = () => {
       width: 227,
       height: 90,
       left: 16,
-      top: 0,
+      top: 90,
 
       background: "#2B2D42",
       boxShadow: "4px -4px 4px rgba(0, 0, 0, 0.25)",
@@ -100,7 +131,7 @@ const Mainpage = () => {
       width: "1236px",
       height: "438px",
       position: "absolute",
-      top: "30vh",
+      top: "19vh",
       borderRadius: "20px",
       border: "3px solid #FFF",
       background: "#FFF",

@@ -5,7 +5,6 @@ const userRoutes = require("./routes/userRoutes");
 const cors = require("cors");
 const axios = require("axios");
 
-
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 //const path = require("path");
 
