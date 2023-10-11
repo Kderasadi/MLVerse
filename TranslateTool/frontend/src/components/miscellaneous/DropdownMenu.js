@@ -9,7 +9,7 @@ function DropdownMenu({ selectedLanguage, setSelectedLanguage }) {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
-  const languageOptions = ["Spanish", "French", "German"];
+  const languageOptions = ["Spanish", "French", "German", "Hindi"];
 
   // Function to handle language selection
   const handleLanguageChange = (event) => {
